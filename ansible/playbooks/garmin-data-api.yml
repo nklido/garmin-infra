@@ -1,0 +1,36 @@
+- name: Provision Garmin Data Api (Spring boot)
+  hosts: garmin-data-api
+  become: true
+  vars:
+    garmin_data_api_version: "0.0.1-SNAPSHOT"
+    garmin_data_api_port: 8080
+  
+  tasks:
+    - name: Ensure Java is installed
+      apt:
+        name: openjdk-17-jre-headless
+        state: present
+        update_cache: yes
+
+    - name: Create app directory
+      file:
+        path: /opt/garmin-data-api
+        state: directory
+        mode: 0755
+    
+    - name: Copy Garmin Data Api jar file
+      copy:
+        src: garminapi-{{ garmin_data_api_version }}.jar
+        dest: /opt/garmin-data-api/garmin-data-api.jar
+        mode: '0644'
+        
+    - name: Kill any running Garmin Data API process
+      shell: "pkill -f 'garmin-data-api.jar'"
+      ignore_errors: yes
+
+    - name: Run application in the background
+      shell: "AUTH_API_URL=http://{{ hostvars['garmin_auth_api']['ansible_host'] }}:5000 nohup java -jar /opt/garmin-data-api/garmin-data-api.jar --server.port={{ garmin_data_api_port }} > /opt/garmin-data-api/garmin-data-api.log 2>&1 &"
+      args:
+        executable: /bin/bash
+      async: 1
+      poll: 0
