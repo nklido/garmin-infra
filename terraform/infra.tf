@@ -186,7 +186,7 @@ resource "aws_instance" "garmin_auth_api" {
 data "aws_availability_zones" "available" {}
 
 
-output "garmin_ui_puclic_ip" {
+output "garmin_ui_public_ip" {
   description = "Public IP of the Garmin Web UI instance"
   value = aws_instance.garmin_ui.public_ip
 }

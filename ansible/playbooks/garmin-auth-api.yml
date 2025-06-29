@@ -20,6 +20,16 @@
         state: directory
         mode: '0755'
 
+    - name: Download UI tarball from S3 to control machine
+      delegate_to: localhost
+      become: false
+      tags: download_artifact
+      amazon.aws.s3_object:
+        bucket: garmin-dashboard-artifacts
+        object: garmin-auth-api/garminauth.tar.gz
+        dest: files/garminauth.tar.gz
+        mode: get
+
     - name: Copy Flask app files
       copy:
         src: "garminauth.tar.gz"

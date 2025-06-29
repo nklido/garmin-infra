@@ -24,6 +24,16 @@
         group: www-data
         mode: '0755'
 
+    - name: Download UI tarball from S3 to control machine
+      delegate_to: localhost
+      become: false
+      tags: download_ui
+      amazon.aws.s3_object:
+        bucket: garmin-dashboard-artifacts
+        object: garmin-ui/garmin-ui.tar.gz
+        dest: files/garmin-ui.tar.gz
+        mode: get
+
     - name: Copy Angular UI tarball to server
       copy:
         src: garmin-ui.tar.gz

@@ -3,7 +3,7 @@ TERRAFORM_DIR="terraform"
 ANSIBLE_DIR="ansible"
 
 echo "Fetching public IPs from Terraform outputs..."
-GARMIN_UI_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_ui_puclic_ip)
+GARMIN_UI_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_ui_public_ip)
 GARMIN_DATA_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_data_api_public_ip)
 GARMIN_AUTH_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_auth_api_public_ip)
 
@@ -12,11 +12,20 @@ if [ -z "$GARMIN_DATA_IP" ] || [ -z "$GARMIN_AUTH_IP" ] || [ -z "$GARMIN_UI_IP" 
     exit 1
 fi
 
+VENV_PYTHON=$(which python)
+if [ ! -x "$VENV_PYTHON" ]; then
+    echo "Error: Virtualenv Python interpreter not found at $VENV_PYTHON"
+    exit 1
+fi
+
 # Define the output inventory file name
 INVENTORY_FILE="$ANSIBLE_DIR/inventory.ini"
 
 # Generate the inventory file
 cat > "$INVENTORY_FILE" <<EOF
+[localhost]
+localhost ansible_connection=local ansible_python_interpreter=${VENV_PYTHON}
+
 [garmin-ui]
 garmin_ui ansible_host=${GARMIN_UI_IP} ansible_user=ubuntu ansible_ssh_private_key_file=../garmin-key.pem
 

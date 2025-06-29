@@ -2,7 +2,6 @@
   hosts: garmin-data-api
   become: true
   vars:
-    garmin_data_api_version: "0.0.1-SNAPSHOT"
     garmin_data_api_port: 8080
   
   tasks:
@@ -17,10 +16,20 @@
         path: /opt/garmin-data-api
         state: directory
         mode: 0755
+
+    - name: Download UI tarball from S3 to control machine
+      delegate_to: localhost
+      become: false
+      tags: download_artifact
+      amazon.aws.s3_object:
+        bucket: garmin-dashboard-artifacts
+        object: garmin-data-api/garmin-data-api.jar
+        dest: files/garmin-data-api.jar
+        mode: get
     
     - name: Copy Garmin Data Api jar file
       copy:
-        src: garminapi-{{ garmin_data_api_version }}.jar
+        src: garmin-data-api.jar
         dest: /opt/garmin-data-api/garmin-data-api.jar
         mode: '0644'
         

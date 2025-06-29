@@ -17,8 +17,16 @@ git clone https://github.com/your-username/garmin-infra.git
 cd garmin-infra
 ```
 
-Initialize and apply Terraform to provision the infrastructure:
 
+From the project root:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Initialize and apply Terraform to provision the infrastructure:
 ```
 cd terraform
 terraform init
