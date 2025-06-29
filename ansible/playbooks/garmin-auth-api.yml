@@ -1,0 +1,54 @@
+- name: Provision Garmin Auth API (Flask)
+  hosts: garmin-auth-api
+  become: true
+  vars:
+    app_dir: /opt/garmin-auth-api
+    flask_port: 5000
+
+  tasks:
+    - name: Ensure Python and pip are installed
+      apt:
+        name:
+          - python3
+          - python3-pip
+        state: present
+        update_cache: yes
+
+    - name: Create app directory
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Copy Flask app files
+      copy:
+        src: "garminauth.tar.gz"
+        dest: "{{ app_dir }}/"
+        mode: '0644'
+
+    - name: Extract Flask app files
+      unarchive:
+        src: "{{ app_dir }}/garminauth.tar.gz"
+        dest: "{{ app_dir }}"
+        remote_src: yes
+
+    - name: Install Python dependencies
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        executable: pip3
+
+    - name: Kill any running Flask process
+      shell: "pkill -f 'flask run'"
+      ignore_errors: yes
+
+
+    - name: Run Flask app in the background
+      shell: |
+        cd {{ app_dir }}
+        nohup flask run --host=0.0.0.0 --port={{ flask_port }} > flask.log 2>&1 &
+      args:
+        executable: /bin/bash
+      environment:
+        FLASK_APP: "{{ app_dir }}/run.py"
+      async: 1
+      poll: 0
