@@ -1,0 +1,32 @@
+#!/bin/bash
+TERRAFORM_DIR="../terraform"
+
+echo "Fetching public IPs from Terraform outputs..."
+GARMIN_UI_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_ui_puclic_ip)
+GARMIN_DATA_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_data_api_public_ip)
+GARMIN_AUTH_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_auth_api_public_ip)
+
+if [ -z "$GARMIN_DATA_IP" ] || [ -z "$GARMIN_AUTH_IP" ] || [ -z "$GARMIN_UI_IP" ]; then
+    echo "Error: Could not retrieve all IPs from Terraform. Is 'terraform apply' complete?"
+    exit 1
+fi
+
+# Define the output inventory file name
+INVENTORY_FILE="inventory.ini"
+
+# Generate the inventory file
+cat > "$INVENTORY_FILE" <<EOF
+[garmin-ui]
+garmin_ui ansible_host=${GARMIN_UI_IP} ansible_user=ubuntu ansible_ssh_private_key_file=../garmin-key.pem
+
+[garmin-data-api]
+garmin_data_api ansible_host=${GARMIN_DATA_IP} ansible_user=ubuntu ansible_ssh_private_key_file=../garmin-key.pem
+
+[garmin-auth-api]
+garmin_auth_api ansible_host=${GARMIN_AUTH_IP} ansible_user=ubuntu ansible_ssh_private_key_file=../garmin-key.pem
+EOF
+
+echo "Generated Ansible inventory: $INVENTORY_FILE"
+echo "Garmin UI IP: $GARMIN_UI_IP"
+echo "Garmin Data API IP: $GARMIN_DATA_IP"
+echo "Garmin Auth API IP: $GARMIN_AUTH_IP"
