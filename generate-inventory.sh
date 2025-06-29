@@ -1,5 +1,6 @@
 #!/bin/bash
-TERRAFORM_DIR="../terraform"
+TERRAFORM_DIR="terraform"
+ANSIBLE_DIR="ansible"
 
 echo "Fetching public IPs from Terraform outputs..."
 GARMIN_UI_IP=$(cd "$TERRAFORM_DIR" && terraform output -raw garmin_ui_puclic_ip)
@@ -12,7 +13,7 @@ if [ -z "$GARMIN_DATA_IP" ] || [ -z "$GARMIN_AUTH_IP" ] || [ -z "$GARMIN_UI_IP" 
 fi
 
 # Define the output inventory file name
-INVENTORY_FILE="inventory.ini"
+INVENTORY_FILE="$ANSIBLE_DIR/inventory.ini"
 
 # Generate the inventory file
 cat > "$INVENTORY_FILE" <<EOF
