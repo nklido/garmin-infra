@@ -1,0 +1,58 @@
+- name: Provision Garmin UI (Angular)
+  hosts: garmin-ui
+  become: true
+  vars:
+    garmin_ui_port: 80
+  
+  tasks:
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: Remove default nginx HTML
+      file:
+        path: /usr/share/nginx/html
+        state: absent
+
+    - name: Create html directory
+      file:
+        path: /usr/share/nginx/html
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy Angular UI tarball to server
+      copy:
+        src: garmin-ui.tar.gz
+        dest: /tmp/garmin-ui.tar.gz
+        mode: '0644'
+
+    - name: Extract UI tarball
+      become: true
+      ansible.builtin.unarchive:
+        src: /tmp/garmin-ui.tar.gz
+        dest: /usr/share/nginx/html/
+        remote_src: yes
+        owner: www-data
+        group: www-data
+
+    - name: Remove uploaded tarball
+      file:
+        path: /tmp/garmin-ui.tar.gz
+        state: absent
+
+    - name: Deploy nginx config
+      template:
+        src: ../templates/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify: Restart nginx
+
+
+  handlers:
+    - name: Restart nginx
+      service:
+        name: nginx
+        state: restarted
